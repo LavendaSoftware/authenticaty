@@ -212,26 +212,19 @@ class AuthenticationGenerator < Rails::Generators::Base
   end
 
   def create_test_files
-<<<<<<< HEAD
-    directory "test_unit/controllers/#{format}", "test/controllers"
-    directory "test_unit/mailers/", "test/mailers"
-    template  "test_unit/test_helper.rb", "test/test_helper.rb", force: true
-=======
     case test_framework
     when :test_unit
       directory "test_unit/controllers/#{format}", "test/controllers"
       directory "test_unit/mailers/", "test/mailers"
-      directory "test_unit/system", "test/system" unless options.api?
       template  "test_unit/test_helper.rb", "test/test_helper.rb", force: true
-      template  "test_unit/application_system_test_case.rb", "test/application_system_test_case.rb", force: true unless options.api?
     when :rspec
-      directory "rspec/controllers/#{format}", "spec/controllers"
+      directory "rspec/requests/#{format}", "spec/requests"
       directory "rspec/mailers/", "spec/mailers"
       directory "rspec/system", "spec/system" unless options.api?
-      template  "rspec/rails_helper.rb", "spec/rails_helper.rb", force: true
-      template  "rspec/application_system_test_case.rb", "spec/application_system_test_case.rb", force: true unless options.api?
+
+      uncomment_lines("spec/rails_helper.rb", /'spec', 'support'/)
+      template "rspec/authentication.rb", "spec/support/authentication.rb", force: true
     end
->>>>>>> cd6ee8f (Optionally generate RSpec specs instead of Test::Unit tests)
   end
 
   private
@@ -281,12 +274,5 @@ class AuthenticationGenerator < Rails::Generators::Base
 
     def test_framework
       Rails.application.config.generators.test_framework
-    end
-
-    def ratelimit_block
-      <<~CODE
-        # Rate limit general requests by IP address in a rate of 1000 requests per minute
-        config.middleware.use(Rack::Ratelimit, name: "General", rate: [1000, 1.minute], redis: Redis.new, logger: Rails.logger) { |env| ActionDispatch::Request.new(env).ip }
-      CODE
     end
 end
